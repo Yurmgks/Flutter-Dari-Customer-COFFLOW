@@ -1,8 +1,3 @@
-// ============================================================
-// lib/models.dart  — Update model dengan fromJson / toJson
-// Ganti model lama di main.dart dengan file ini
-// ============================================================
-
 class Product {
   final String id;
   final String name;
@@ -22,7 +17,6 @@ class Product {
     this.isPopular = false,
   });
 
-  // ← Tambahkan ini untuk konversi dari Supabase
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id:          json['id']          as String,
