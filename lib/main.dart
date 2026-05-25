@@ -1,14 +1,3 @@
-// ============================================================
-// lib/main.dart  — Cofflow + Supabase Integration
-// Perubahan dari versi mock:
-//   1. Inisialisasi Supabase di main()
-//   2. LoginScreen memakai AuthService
-//   3. HomeScreen fetch produk dari DB
-//   4. CartScreen buat order ke Supabase
-//   5. OrdersScreen pakai Realtime subscription
-//   6. ProfileScreen fetch data profil dari DB
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -18,7 +7,7 @@ import 'dart:async';
 import 'models.dart';
 import 'services/supabase_service.dart';
 
-// ─── GANTI DUA NILAI INI ──────────────────────────────────
+// ─── GANTI KEY ──────────────────────────────────
 const kSupabaseUrl    = 'https://fhvsavmubvgsrqqijhvq.supabase.co';
 const kSupabaseAnonKey = 'sb_publishable_jNM9EmfBOdrNxJ9nR2gkJg_OlM5BGYZ';
 // ──────────────────────────────────────────────────────────
@@ -66,9 +55,6 @@ const kBrandAccent = Color(0xFFD4AF37);
 const kBrandLight  = Color(0xFFF7F7F5);
 const kBrandMuted  = Color(0xFFEEEEEB);
 
-// ─────────────────────────────────────────────────────────
-// GLOBAL STATE  (cart tetap di memori; order dari Supabase)
-// ─────────────────────────────────────────────────────────
 class AppState {
   static final GlobalKey<_MainNavigationState> navKey =
       GlobalKey<_MainNavigationState>();
@@ -93,7 +79,6 @@ class AppState {
     changeTab(2);
   }
 
-  // ── Buat pesanan ke Supabase ──────────────────────────
   static Future<void> placeOrder(BuildContext context) async {
     int subtotal = cart.fold(0, (s, i) => s + i.product.price * i.quantity);
     int tax      = (subtotal * 0.1).toInt();
@@ -111,7 +96,6 @@ class AppState {
       cart = [];
       changeTab(1); // Tab Pesanan
 
-      // Mulai realtime listener untuk status pesanan
       _listenToOrder(context, order.id);
     } catch (e) {
       if (context.mounted) {
