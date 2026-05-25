@@ -1,19 +1,9 @@
-// ============================================================
-// lib/services/supabase_service.dart
-// Compatible dengan supabase_flutter: ^2.12.0
-// ============================================================
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models.dart';
 
-// ─── Singleton client ─────────────────────────────────────
 final supabase = Supabase.instance.client;
 
-// ============================================================
-// AUTH SERVICE
-// ============================================================
 class AuthService {
-  /// Login dengan email + password
   static Future<AuthResponse> signIn({
     required String email,
     required String password,
@@ -24,7 +14,6 @@ class AuthService {
     );
   }
 
-  /// Daftar akun baru
   static Future<AuthResponse> signUp({
     required String email,
     required String password,
@@ -50,13 +39,8 @@ class AuthService {
 }
 
 
-// ============================================================
-// PRODUCT SERVICE
-// ============================================================
 class ProductService {
-  /// Ambil semua produk aktif
   static Future<List<Product>> fetchAll() async {
-    // v2.x: response langsung List<Map>, tidak perlu cast
     final response = await supabase
         .from('products')
         .select()
@@ -66,7 +50,6 @@ class ProductService {
     return response.map((row) => Product.fromJson(row)).toList();
   }
 
-  /// Filter berdasarkan kategori
   static Future<List<Product>> fetchByCategory(String category) async {
     final List<Map<String, dynamic>> response;
 
@@ -89,12 +72,7 @@ class ProductService {
   }
 }
 
-
-// ============================================================
-// ORDER SERVICE
-// ============================================================
 class OrderService {
-  /// Buat pesanan baru (order + order_items)
   static Future<Order> createOrder({
     required List<CartItem> cartItems,
     required int subtotal,
@@ -103,7 +81,6 @@ class OrderService {
   }) async {
     final userId = AuthService.currentUser!.id;
 
-    // 1. Insert order, langsung .select().single() → Map<String, dynamic>
     final orderRow = await supabase
         .from('orders')
         .insert({
@@ -120,7 +97,6 @@ class OrderService {
     final orderCode = orderRow['order_code']   as String;
     final queueNum  = orderRow['queue_number'] as int;
 
-    // 2. Insert semua item sekaligus
     await supabase.from('order_items').insert(
       cartItems.map((item) => {
         'order_id':   orderId,
@@ -143,11 +119,9 @@ class OrderService {
     );
   }
 
-  /// Ambil riwayat pesanan user
   static Future<List<Map<String, dynamic>>> fetchHistory() async {
     final userId = AuthService.currentUser!.id;
 
-    // v2.x: response sudah List<Map<String, dynamic>>
     final response = await supabase
         .from('orders')
         .select(
@@ -161,9 +135,6 @@ class OrderService {
     return response;
   }
 
-  /// Subscribe realtime ke perubahan status pesanan
-  /// Compatible supabase_flutter ^2.12.0:
-  ///   - filter pakai PostgresChangeFilter(column, value) — tanpa FilterType
   static RealtimeChannel subscribeToOrder({
     required String orderId,
     required void Function(String newStatus) onStatusChange,
@@ -187,19 +158,13 @@ class OrderService {
         .subscribe();
   }
 
-  /// Berhenti subscribe (panggil saat order selesai / dispose)
   static Future<void> unsubscribeOrder(RealtimeChannel channel) async {
     await supabase.removeChannel(channel);
   }
 }
 
 
-// ============================================================
-// PROFILE SERVICE
-// ============================================================
 class ProfileService {
-  /// Ambil profil user yang sedang login
-  /// v2.x: .single() langsung return Map<String, dynamic>
   static Future<Map<String, dynamic>> fetchProfile() async {
     final userId = AuthService.currentUser!.id;
 
@@ -210,7 +175,6 @@ class ProfileService {
         .single();
   }
 
-  /// Update nama dan/atau avatar
   static Future<void> updateProfile({
     String? fullName,
     String? avatarUrl,
@@ -228,7 +192,6 @@ class ProfileService {
         .eq('id', userId);
   }
 
-  /// Riwayat perolehan / penukaran poin
   static Future<List<Map<String, dynamic>>> fetchPointsLog() async {
     final userId = AuthService.currentUser!.id;
 
